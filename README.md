@@ -2,7 +2,8 @@
  
 ## Installing
 
-[![npm version](https://badge.fury.io/js/cypress.svg)](https://badge.fury.io/js/cypress)
+  First of all, in order to run these tests you need to install cypress. 
+
 
 Install Cypress for Mac, Linux, or Windows, then [get started](https://on.cypress.io/install).
 
