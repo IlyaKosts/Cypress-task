@@ -7,7 +7,7 @@
 ```bash
 npm install cypress --save-dev
 ```
-
+The process should look something like this:
 ![installing-cli e1693232](https://user-images.githubusercontent.com/1271364/31740846-7bf607f0-b420-11e7-855f-41c996040d31.gif)
 
 Then, you will need to install such plugins:
@@ -18,4 +18,12 @@ and
 ```bash
 npm install -D cypress-xpath
 ```
-After all these steps, you will need to add configurations to
+After all these steps, you will need to add configurations to "../support/e2e.js" file:
+
+```bash
+require('cypress-xpath')
+```
+```bash
+import "cypress-real-events/support"
+```
+Now, finally, we have everything we need to run tests in cypress.
