@@ -1,21 +1,59 @@
-name: Cypress tests run
-on: 
-  push:
-    branches:
-      - 'main'
-  workflow_dispatch:
+name: Build
+
+on: [push, pull_request]
 
 jobs:
-  testing:
-    runs-on: ubuntu-latest
+  prepare-versions:
+    runs-on: ubuntu-20.04
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
-
-      - name: Check out repository code
+      - name: Checkout
         uses: actions/checkout@v2
+      - id: set-matrix
+        name: Prepare
+        run: echo "::set-output name=matrix::$(node -p "JSON.stringify(require('./package.json').peerDependencies['cypress'].split(' || '))")"
+      - run: npm -v
 
-      - name: run cypress tests with chrome
-        uses: cypress-io/github-action@v4
-        timeout-minutes: 10
+  test:
+    needs: prepare-versions
+    runs-on: ubuntu-20.04
+    container:
+      image: cypress/base:17.3.0
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Cache NPM modules
+        uses: actions/cache@v2
         with:
-          browser: chrome
+          path: ~/.npm
+          key: npm@${{ matrix.cypress-version }}
+      - name: Cache TypeScript installs
+        uses: actions/cache@v2
+        with:
+          path: ~/.dts
+          key: dts
+      - name: Cache Cypress binaries
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/Cypress
+          key: cypress@${{ matrix.cypress-version }}
+      - name: Change owner
+        run: "chown root: ."
+      - name: Dependencies
+        env:
+          CYPRESS_INSTALL_BINARY: "0"
+          CUCUMBER_JSON_FORMATTER_URL: https://github.com/cucumber/common/releases/download/json-formatter%2Fgo%2Fv19.0.0/cucumber-json-formatter-linux-amd64
+        run: |
+          npm install --force && \
+          npm install --no-save cypress@${{ matrix.cypress-version }} && \
+          env -u CYPRESS_INSTALL_BINARY npx cypress install && \
+          curl -L $CUCUMBER_JSON_FORMATTER_URL > /usr/bin/cucumber-json-formatter && \
+          chmod +x /usr/bin/cucumber-json-formatter
+      - name: Build
+        run: npm run build
+      - name: Test
+        run: npm run test
+      - name: Version
+        run: npx cypress --version
