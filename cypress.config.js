@@ -9,4 +9,5 @@ module.exports = defineConfig({
   viewportHeight: 800,
   viewportWidth: 1360,
   waitForAnimations: true,
+  projectId: 'a0000001'.
 });
